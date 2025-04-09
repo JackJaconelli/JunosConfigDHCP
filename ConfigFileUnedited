@@ -4,7 +4,7 @@
 version 12.1X47-D15.4;
 system {
     host-name R2;
-    /* User: root Password: Rootpass */
+    /* User: <Expression> Password: <expression> */
     root-authentication {
         encrypted-password "$1$xH9xJoL6$MFOUYnZr4.Qj2NM24XInz/";
     }
