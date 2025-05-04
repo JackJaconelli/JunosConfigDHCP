@@ -1,1 +1,36 @@
 show interfaces terse | match ge-0/0/0
+
+
+configure
+
+# Assign interfaces to zones
+set security zones security-zone trust interfaces ge-0/0/1
+set security zones security-zone untrust interfaces ge-0/0/0
+
+# IP configuration for internal interface
+set interfaces ge-0/0/1 unit 0 family inet address 192.168.1.1/24
+
+# External interface via DHCP (optional)
+set interfaces ge-0/0/0 unit 0 family inet dhcp
+
+# DHCP server setup
+set system services dhcp-local-server group DHCP-GROUP interface ge-0/0/1
+set access address-assignment pool DHCP-POOL family inet network 192.168.1.0/24
+set access address-assignment pool DHCP-POOL family inet range RANGE-1 low 192.168.1.10
+set access address-assignment pool DHCP-POOL family inet range RANGE-1 high 192.168.1.100
+set access address-assignment pool DHCP-POOL family inet dhcp-attributes router 192.168.1.1
+
+# NAT configuration
+set security nat source rule-set RS1 from zone trust
+set security nat source rule-set RS1 to zone untrust
+set security nat source rule-set RS1 rule R1 match source-address 192.168.1.0/24
+set security nat source rule-set RS1 rule R1 then source-nat interface
+
+# Security policies
+set security policies from-zone trust to-zone untrust policy allow-internet match source-address any
+set security policies from-zone trust to-zone untrust policy allow-internet match destination-address any
+set security policies from-zone trust to-zone untrust policy allow-internet match application any
+set security policies from-zone trust to-zone untrust policy allow-internet then permit
+
+commit
+
