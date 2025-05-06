@@ -1,5 +1,57 @@
 show interfaces terse | match ge-0/0/0
 
+# Set password
+set system root-authentication plain-text-password
+
+# Set Host-name
+set system host-name <expression>
+
+# Set interfaces
+set interfaces ge-0/0/1.0 family inet address 192.168.1.1/24
+set interfaces ge-0/0/2.0 family inet address 192.168.1.1/24
+
+# Set security zones
+# Prompt Question
+set security zones security zones ?
+## Security trust zone set
+set security zones security-zone trust interfaces ge-0/0/2.0
+set security zones security-zone untrust interfaces ge-0/0/2.0
+## Prompt question
+set security policies ?
+## Edit policies
+edit security policies from-zone trust to-zone untrust policy default-permit
+show
+commit
+top
+## Nat Settings
+# Prompt question
+set security nat source rule-set ?
+edit security nat source rule set NAT-SOURCE?
+# Set NAT
+edit security nat source rule set NAT-SOURCE
+set from zone trust interface ge-0/0/2.0
+set from zone trust interface ge-0/0/1.0
+# Prompt question
+show
+##
+edit rule NAT-TRUST 
+set match source-address 192.168.1.1/24
+set match destination-address 0/0 
+set then soure-nat interface
+
+#####
+
+
+
+
+
+
+
+
+
+
+
+
 
 configure
 
