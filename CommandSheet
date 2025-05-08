@@ -1,15 +1,12 @@
+# Credentials
 show interfaces terse | match ge-0/0/0
-
 # Set password
 set system root-authentication plain-text-password
-
 # Set Host-name
 set system host-name <expression>
-
 # Set interfaces
 set interfaces ge-0/0/1.0 family inet address 192.168.1.1/24
 set interfaces ge-0/0/2.0 family inet address 192.168.1.1/24 
-
 # Set security zones
 # Prompt Question
 set security zones security zones ?
@@ -38,7 +35,6 @@ edit rule NAT-TRUST
 set match source-address 192.168.1.1/24
 set match destination-address 0/0 
 set then soure-nat interface
-
 #####
 Set Policies
 ##
@@ -46,13 +42,45 @@ set match source-address any
 set match destination-address any
 set match application any
 set then permit
-
-
 ## DHCP
-
 set system services dhcp-local-server group DHCP-GROUP interface ge-0/0/1.0
 set access address-assignment pool DHCP-POOL family inet network 192.168.1.0/24
 set access address-assignment pool DHCP-POOL family inet range DHCP-RANGE low 192.168.1.100
 set access address-assignment pool DHCP-POOL family inet range DHCP-RANGE high 192.168.1.200
 set access address-assignment pool DHCP-POOL family inet dhcp-attributes router 192.168.1.1
-
+## Option 2
+## Set InterFaces
+set interfaces fxp0 unit 0 family inet address 192.168.1.1/24
+set interfaces ge-0/0/0 unit 0 family inet address 10.11.32.72/24
+set interfaces ge-0/0/1 unit 0 family inet address 10.10.10.1/24
+## Set security zones
+set security zones security-zone untrust interfaces ge-0/0/0.0
+set security zones security-zone untrust host-inbound-traffic system services all
+set security zones security-zone untrust host-inbound-traffic protocols all
+set security zones security-zone trust interfaces ge-0/0/1.0
+set security zones security-zone trust host-indbound-traffic system services all
+set security zones security-zone trust host-indbound-traffic system protcols all
+## Edit security
+edit security policies from-zone trust to-zone untrust policy lan-to-internet
+set match source address any
+set match destination-address any
+set match application any
+set then permit
+exit
+commit
+edit security policies from untrust to-zone trust policy deny-from-internet
+set match source-address any
+set match destination-address any
+set match application any
+set then permit
+exit
+commit
+run show ?
+set rouiting-options static route 0.0.0.0/0 next-hop 10.11.32.140
+commit
+## Nat settings
+set security nat source rule-set lan-to-wan from zone trust
+set security nat source rule-set lan-to-wan to zone untrust
+set security nat source rule-set lan-to-wan rule subnet10 match source-address 10.10.10.0/24
+set security nat source rule-set lan-to-wan rule subnet10 match destination-address 0.0.0.0/0
+set security nat source rule-set lan-to-wan rule subnet10 then source-nat interface 
